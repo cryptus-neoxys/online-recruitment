@@ -1,0 +1,32 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+	
+	{%- for category, message in get_flashed_messages(with_categories = true) %}
+         <div class = "alert alert-danger">
+            {{ message }}
+         </div>
+    {%- endfor %}
+
+    <div class="container">
+    	<div class="text-center my-4">
+    		<h1>Login</h1>
+    	</div>
+    	<form method="post" action="{{ url_for('login') }}" class="form-group col-12 col-md-6  py-5 px-4 mx-auto rounded-lg shadow-lg">
+    		<label class="font-weight-bold m-1">Username</label>
+    		<input type="text" class="form-control" autocomplete="off" name="username" placeholder="Username">
+
+    		<label class="font-weight-bold m-1">Password</label>
+    		<input type="password" class="form-control" name="password" placeholder="Password">
+
+    		<div class="text-center mt-4">
+    			<button type="submit" class="btn btn-primary">Login</button>	
+    		</div>
+    		
+
+
+    	</form>	
+    </div>
+    
+
+{% endblock %}

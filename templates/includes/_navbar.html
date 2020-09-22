@@ -9,19 +9,33 @@
     <div class="collapse navbar-collapse" id="navbarResponsive">
       <ul class="navbar-nav ml-auto">
         <li class="nav-item active">
-          <a class="nav-link" href="/">Home
-                <span class="sr-only">(current)</span>
-              </a>
+          <a class="nav-link" href="{{ url_for('home') }}">Home</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/about">About</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/service">Services</a>
-        </li>
-        <li class="nav-item">
+
+        {% if 'user' in session %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('account') }}">Account</a>
+            </li>
+        {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+            </li>
+        {% endif %}
+
+        {% if 'user' in session %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+            </li>
+        {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('signup') }}">Signup</a>
+            </li>
+        {% endif %}
+
+
+        <!-- <li class="nav-item">
           <a class="nav-link" href="/contact">Contact</a>
-        </li>
+        </li> -->
       </ul>
     </div>
   </div>

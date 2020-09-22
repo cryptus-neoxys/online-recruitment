@@ -1,0 +1,18 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+	
+	{%- for category, message in get_flashed_messages(with_categories = true) %}
+         <div class = "alert alert-success">
+            {{ message }}
+         </div>
+    {%- endfor %}
+
+    <div class="container">
+    	
+        <h1>{{username}}</h1>
+
+    </div>
+    
+
+{% endblock %}

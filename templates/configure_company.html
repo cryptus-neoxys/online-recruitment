@@ -1,0 +1,41 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="container">
+
+	<h1 class="my-2">Configure to continue</h1>
+	<form action="{{ url_for('configure', user_type='company') }}" method="post">
+		<div>
+			<label class="font-weight-bold">Company ID</label> <p>{{ company_id }}</p> 	
+			<input type="text" class="d-none"  name="company_id" value="{{ company_id }}">
+		</div>
+		<div>
+			<label class="font-weight-bold">Username</label> <p>{{ username }}</p>	
+		</div>
+
+		<div>
+			<label>Company Name</label>
+			<input class="form-control col-12 col-md-6 my-2" type="text" name="company_name" placeholder="Company Name">
+		</div>
+		
+		<div>
+			<label>Company Type</label>
+			<input class="form-control col-12 col-md-6 my-2" type="text" name="company_type" placeholder="Company Type">
+		</div>
+
+		<div>
+			<label>Company Email</label>
+			<input class="form-control col-12 col-md-6 my-2" type="email" name="company_email" placeholder="Company Email">
+		</div>
+
+		<div>
+			<label>Number of Vacancies</label>
+			<input class="form-control col-12 col-md-6 my-2" type="number" name="company_vacancies" placeholder="Number of Vacancies">
+		</div>
+		
+		<div>
+			<button type='submit' class="btn btn-primary px-3 py-1 my-3 rounded">Submit</button>
+		</div>
+	</form>
+</div>
+{% endblock %}

@@ -3,6 +3,7 @@
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime, timedelta, date
 
 DEVELOPMENT_ENV  = True
 
@@ -28,7 +29,7 @@ def __repr__(self, username, password, usertype, name):
    self.name = name
 
 class Company(db.Model):
-	company_id = db.Column(db.Integer(), primary_key=True)
+	company_id = db.Column(db.String(), primary_key=True)
 	company_name = db.Column(db.String(100), nullable=False)
 	company_email = db.Column(db.String(100), nullable=False)
 	company_vacancies = db.Column(db.Integer())
@@ -77,7 +78,7 @@ def signup():
 
 			session['user'] = username
 
-			return redirect(url_for('account'))
+			return redirect(url_for('configure', user_type=usertype))
 	else:
 		return render_template('signup.html', app_data=app_data)
 
@@ -89,14 +90,14 @@ def login():
 		password =request.form['password']
 
 		user = User.query.filter_by(username = username).first()
-		
+
 		
 		if user:
-			
 			if user.password == password and user.username == username:
 				#account
-
 				session['user'] = username
+				if(len(user.userdata) == 0):
+					return redirect(url_for('configure', user_type=user.usertype))
 				return redirect(url_for('account'))
 			else:
 				#wrong password
@@ -116,9 +117,80 @@ def login():
 @app.route('/account', methods=['POST', 'GET'])
 def account():
 	if 'user' in session:
-		return render_template('company.html', app_data=app_data, username=session['user'])
+		user = User.query.filter_by(username = session['user']).first()
+		print(user.username)
+		print(user.usertype)
+		print(type(user.userdata))  # []
+		for row in user.userdata:
+			print(row)
+
+		if(user.usertype == 'company'):
+			# print(dict(user.userdata))
+			# company_name = user.userdata.company_name
+			# company_id = user.userdata.company_id
+			# company_vacancies = user.userdata.company_vacancies
+			# company_type = user.userdata.company_type
+			# company_email = user.userdata.company_email
+
+			# company_data = {
+			# 	"company_name" : user.userdata.company_name,
+			# 	"company_id" : user.userdata.company_id,
+			# 	"company_vacancies" : user.userdata.company_vacancies,
+			# 	"company_type" : user.userdata.company_type,
+			# 	"company_email" : user.userdata.company_email			
+			# }
+			return render_template('company.html', app_data=app_data, username=session['user'])
 	else:
 		return redirect(url_for('login'))
+
+@app.route('/configure/<user_type>', methods=['GET', 'POST'])  
+def configure(user_type):  
+	if user_type == 'company':
+		if request.method != 'POST':
+			ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
+			now = datetime.now()
+			date = now.strftime("%Y%m%d%H%M%S")
+
+			company_id = ''.join(ip.split('.')) + date;
+
+			print(session['user'])
+
+			return render_template('configure_company.html', app_data=app_data, company_id=company_id, username=session['user'])
+		else:
+			company_name = request.form['company_name']
+			company_type = request.form['company_type']
+			company_vacancies = request.form['company_vacancies']
+			company_id = request.form['company_id']
+			company_email = request.form['company_email']
+
+
+			new_company = Company(company_id=company_id, username=session['user'],company_email=company_email, company_vacancies=int(company_vacancies), company_name=company_name, company_type=company_type)
+			
+			db.session.add(new_company)
+			db.session.commit()
+
+			print(company_name, company_type, company_vacancies)
+			return redirect(url_for('account'))
+
+	elif user_type == 'user':
+		return 'configure_user'
+	else:
+		return redirect(url_for('home'))
+
+# @app.route('/cofigure/<user_type>')
+# def configure(user_type):
+# 	print(user_type)
+# 	if user_type == 'company':
+# 		return 'configure_company'
+# 	elif usertype == 'user':
+# 		return 'configure_user'
+# 	else:
+# 		return redirect(url_for('home'))
+	
+
+
+
+
 
 @app.route('/logout')
 def logout():

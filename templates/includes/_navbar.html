@@ -12,6 +12,16 @@
           <a class="nav-link" href="{{ url_for('home') }}">Home</a>
         </li>
 
+        {% if session['usertype'] == 'company' %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('newpost') }}">Create New Post</a>
+          </li>
+        {% else %}
+          <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('post') }}">Find Jobs</a>
+          </li>
+        {% endif %}
+
         {% if 'user' in session %}
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('account') }}">Account</a>
@@ -31,6 +41,9 @@
               <a class="nav-link" href="{{ url_for('signup') }}">Signup</a>
             </li>
         {% endif %}
+
+       
+
 
 
         <!-- <li class="nav-item">

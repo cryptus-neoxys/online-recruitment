@@ -1,0 +1,52 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+	
+	{%- for category, message in get_flashed_messages(with_categories = true) %}
+         <div class = "alert alert-success">
+            {{ message }}
+         </div>
+    {%- endfor %}
+
+    <div class="container">
+    	
+
+
+        <form method="post" action="{{ url_for('newpost') }}" class="form-group col-12 col-md-6  py-4 px-4 mx-auto rounded-lg shadow-lg">
+            
+            <h1>Create New Post</h1>
+            
+            
+
+
+            <div class="d-flex justify-content-between flex-row">
+                <label class="font-weight-bold text-danger d-block">{{ company['company_name'] }}</label>
+                <label class="font-weight-bold text-primary d-block"><script type="text/javascript">document.write(new Date().toLocaleString())</script></label>
+            </div>
+            
+
+            <label class="font-weight-bold" for="job_type">Select Job Type:</label>
+              <select class="form-control" name='job_type'>
+                <option>Web Dev</option>
+                <option>Dev Ops</option>
+                <option>ML</option>
+                <option>Blockchain</option>
+              </select>
+
+            <label class="font-weight-bold m-1">Post Requirements</label>
+            <textarea class="form-control" placeholder="Enter the job Requirements here" rows="6" name="job_description" id="post"></textarea>
+
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-success px-5 py-0">Post</button>    
+            </div>
+
+            <input type="text" name="companyid" class="d-none" value="{{ company['company_id'] }}">
+            <input type="text" name="companyname" class="d-none" value="{{ company['company_name'] }}">
+        </form> 
+
+        
+
+    </div>
+    
+
+{% endblock %}

@@ -4,6 +4,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta, date
+import json
 
 DEVELOPMENT_ENV  = True
 
@@ -20,7 +21,7 @@ class User(db.Model):
    name = db.Column(db.String(100), nullable=False)
    password = db.Column(db.String(100), nullable=False)
    usertype = db.Column(db.String(100), nullable=False)
-   userdata = db.relationship('Company', backref='user', lazy=True)
+   
 
 def __repr__(self, username, password, usertype, name):
    self.username = username
@@ -34,9 +35,16 @@ class Company(db.Model):
 	company_email = db.Column(db.String(100), nullable=False)
 	company_vacancies = db.Column(db.Integer())
 	company_type =  db.Column(db.String(100), nullable=False)
-	username = db.Column(db.String(100), db.ForeignKey('user.username'), nullable=False)
+	username = db.Column(db.String(100), nullable=False)
 
-   
+class Post(db.Model):
+	post_id = db.Column(db.Integer(), primary_key=True)
+	company_id = db.Column(db.String(), nullable=False)
+	company_name = db.Column(db.String(100), nullable=False)
+	job_type = db.Column(db.String(100), nullable=False)
+	job_description = db.Column(db.String(1000), nullable=False)
+
+
 
 
 db.create_all() 
@@ -53,7 +61,18 @@ app_data = {
 
 @app.route('/')
 def home():
-	return render_template('home.html', app_data=app_data)
+	posts = Post.query.filter_by().all()
+	all_post = []
+	for post in posts:
+		temp = post.__dict__
+		del temp['_sa_instance_state']
+		company = Company.query.filter_by(company_id = temp['company_id']).first().__dict__
+		temp['company_email'] = company['company_email']
+
+		all_post.append(temp)
+	print(all_post)
+	all_post.reverse()
+	return render_template('home.html', app_data=app_data, posts=all_post)
 
 
 @app.route('/signup', methods=['POST', 'GET'])
@@ -77,6 +96,7 @@ def signup():
 			db.session.commit()
 
 			session['user'] = username
+			session['user_type'] = usertype
 
 			return redirect(url_for('configure', user_type=usertype))
 	else:
@@ -96,7 +116,8 @@ def login():
 			if user.password == password and user.username == username:
 				#account
 				session['user'] = username
-				if(len(user.userdata) == 0):
+				session['usertype'] = user.usertype
+				if(not Company.query.filter_by(username = username).first()):
 					return redirect(url_for('configure', user_type=user.usertype))
 				return redirect(url_for('account'))
 			else:
@@ -118,28 +139,12 @@ def login():
 def account():
 	if 'user' in session:
 		user = User.query.filter_by(username = session['user']).first()
-		print(user.username)
-		print(user.usertype)
-		print(type(user.userdata))  # []
-		for row in user.userdata:
-			print(row)
-
-		if(user.usertype == 'company'):
-			# print(dict(user.userdata))
-			# company_name = user.userdata.company_name
-			# company_id = user.userdata.company_id
-			# company_vacancies = user.userdata.company_vacancies
-			# company_type = user.userdata.company_type
-			# company_email = user.userdata.company_email
-
-			# company_data = {
-			# 	"company_name" : user.userdata.company_name,
-			# 	"company_id" : user.userdata.company_id,
-			# 	"company_vacancies" : user.userdata.company_vacancies,
-			# 	"company_type" : user.userdata.company_type,
-			# 	"company_email" : user.userdata.company_email			
-			# }
-			return render_template('company.html', app_data=app_data, username=session['user'])
+		if user.usertype == 'company':
+			company = Company.query.filter_by(username = session['user']).first()
+			company = company.__dict__
+			return render_template('company.html', app_data=app_data, company=company)
+		else:
+			return 'user is job seeker'
 	else:
 		return redirect(url_for('login'))
 
@@ -177,18 +182,39 @@ def configure(user_type):
 	else:
 		return redirect(url_for('home'))
 
-# @app.route('/cofigure/<user_type>')
-# def configure(user_type):
-# 	print(user_type)
-# 	if user_type == 'company':
-# 		return 'configure_company'
-# 	elif usertype == 'user':
-# 		return 'configure_user'
-# 	else:
-# 		return redirect(url_for('home'))
+@app.route('/newpost', methods=['GET', 'POST'])
+def newpost():
+	if request.method == 'GET':
+		if 'user' in session:
+			if session['usertype'] == 'company':
+				company = Company.query.filter_by(username = session['user']).first().__dict__
+				return render_template('newpost.html', app_data=app_data, company=company)		
+			else:
+				return 'begone bitch you a peasant'
+		else:
+			return redirect(url_for('login'))
+	else:
+		print(request.form['companyid'])
+		now = datetime.now()
+		timestamp = now.strftime("%Y%m%d%H%M%S")
+		new_post = Post(post_id=timestamp ,company_id=request.form['companyid'], company_name=request.form['companyname'], job_type=request.form['job_type'], job_description=request.form['job_description'])			
+		db.session.add(new_post)
+		db.session.commit()
+		
+		return redirect(url_for('home'))
+
 	
 
-
+@app.route('/post', methods=['GET', 'POST'])
+def post():
+	posts = Post.query.filter_by().all()
+	all_post = []
+	for post in posts:
+		temp = post.__dict__
+		del temp['_sa_instance_state']
+		all_post.append(temp)
+	print(all_post)
+	return 'post.html'
 
 
 

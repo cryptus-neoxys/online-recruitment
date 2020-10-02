@@ -144,7 +144,6 @@ def login():
 		return render_template('login.html', app_data=app_data)
 
 
-
 @app.route('/account', methods=['POST', 'GET'])
 def account():
 	if 'user' in session:
@@ -154,9 +153,9 @@ def account():
 			company = company.__dict__
 			return render_template('company.html', app_data=app_data, company=company)
 		else:
-			applicant_ = Applicant.query.filter_by(username = session['user']).first()
+			applicant = Applicant.query.filter_by(username = session['user']).first()
 			applicant = applicant.__dict__
-			return render_template('applicant.html', app_data=app=data, applicant=applicant)
+			return render_template('applicant.html', app_data=app_data, applicant=applicant)
 	else:
 		return redirect(url_for('login'))
 
@@ -194,33 +193,27 @@ def configure(user_type):
 			ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
 			now = datetime.now()
 			date = now.strftime("%Y%m%d%H%M%S")
-			user_id = 'U' + ''.join(ip.split('.')) + date;
-			return render_template('configure_user.html', app_data=app_data, user_id=user_id, username=session['user'])
+			applicant_id = 'U' + ''.join(ip.split('.')) + date;
+			return render_template('configure_user.html', app_data=app_data, applicant_id=applicant_id, username=session['user'])
 		else:
 
-			applicant = {
+			applicantobj = {
 				'applicant_name' : request.form['applicant_name'],
 				'applicant_email' : request.form['applicant_email'],
 				'applicant_number' : request.form['applicant_number'],
 				'applicant_dob' : request.form['applicant_dob'],
-				'applicant_location' : request.form['applicant_location']
+				'applicant_location' : request.form['applicant_location'],
+				'applicant_id' : request.form['applicant_id']
 			}
 
-			print(applicant)
-			# applicant_id = db.Column(db.String(100), primary_key=True)
-			# applicant_email = db.Column(db.String(100), primary_key=False)
-			# applicant_number = db.Column(db.String(100), primary_key=False)
-			# applicant_dob = db.Column(db.String(100), primary_key=False)
-			# applicant_location = db.Column(db.String(1000), primary_key=False)
-			# username = db.Column(db.String(100), nullable=False)
+			print(applicantobj)
 
-			new_applicant = Applicant(applicant_id=applicant['applicant_id'], applicant_email=applicant['applicant_email'], applicant_number=applicant['applicant_number'], applicant_dob=applicant['applicant_dob'], applicant_location=applicant['applicant_location'], username=session['user'])
+			new_applicant = Applicant(applicant_id=applicantobj['applicant_id'], applicant_email=applicantobj['applicant_email'], applicant_number=applicantobj['applicant_number'], applicant_dob=applicantobj['applicant_dob'], applicant_location=applicantobj['applicant_location'], username=session['user'])
 			
 			db.session.add(new_applicant)
 			db.session.commit()
 
 			return redirect(url_for('account'))
-
 	else:
 		return redirect(url_for('home'))
 

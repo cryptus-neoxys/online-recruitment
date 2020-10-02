@@ -37,6 +37,16 @@ class Company(db.Model):
 	company_type =  db.Column(db.String(100), nullable=False)
 	username = db.Column(db.String(100), nullable=False)
 
+class Applicant(db.Model):
+	applicant_id = db.Column(db.String(100), primary_key=True)
+	applicant_email = db.Column(db.String(100), primary_key=False)
+	applicant_number = db.Column(db.String(100), primary_key=False)
+	applicant_dob = db.Column(db.String(100), primary_key=False)
+	applicant_location = db.Column(db.String(1000), primary_key=False)
+	username = db.Column(db.String(100), nullable=False)
+
+	
+
 class Post(db.Model):
 	post_id = db.Column(db.Integer(), primary_key=True)
 	company_id = db.Column(db.String(), nullable=False)
@@ -144,7 +154,9 @@ def account():
 			company = company.__dict__
 			return render_template('company.html', app_data=app_data, company=company)
 		else:
-			return 'user is job seeker'
+			applicant_ = Applicant.query.filter_by(username = session['user']).first()
+			applicant = applicant.__dict__
+			return render_template('applicant.html', app_data=app=data, applicant=applicant)
 	else:
 		return redirect(url_for('login'))
 
@@ -177,8 +189,38 @@ def configure(user_type):
 			print(company_name, company_type, company_vacancies)
 			return redirect(url_for('account'))
 
-	elif user_type == 'user':
-		return 'configure_user'
+	if user_type == 'applicant':
+		if request.method != 'POST':
+			ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
+			now = datetime.now()
+			date = now.strftime("%Y%m%d%H%M%S")
+			user_id = 'U' + ''.join(ip.split('.')) + date;
+			return render_template('configure_user.html', app_data=app_data, user_id=user_id, username=session['user'])
+		else:
+
+			applicant = {
+				'applicant_name' : request.form['applicant_name'],
+				'applicant_email' : request.form['applicant_email'],
+				'applicant_number' : request.form['applicant_number'],
+				'applicant_dob' : request.form['applicant_dob'],
+				'applicant_location' : request.form['applicant_location']
+			}
+
+			print(applicant)
+			# applicant_id = db.Column(db.String(100), primary_key=True)
+			# applicant_email = db.Column(db.String(100), primary_key=False)
+			# applicant_number = db.Column(db.String(100), primary_key=False)
+			# applicant_dob = db.Column(db.String(100), primary_key=False)
+			# applicant_location = db.Column(db.String(1000), primary_key=False)
+			# username = db.Column(db.String(100), nullable=False)
+
+			new_applicant = Applicant(applicant_id=applicant['applicant_id'], applicant_email=applicant['applicant_email'], applicant_number=applicant['applicant_number'], applicant_dob=applicant['applicant_dob'], applicant_location=applicant['applicant_location'], username=session['user'])
+			
+			db.session.add(new_applicant)
+			db.session.commit()
+
+			return redirect(url_for('account'))
+
 	else:
 		return redirect(url_for('home'))
 

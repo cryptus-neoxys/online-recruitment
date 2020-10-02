@@ -1,0 +1,46 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="container">
+
+	<h1 class="my-2">Configure to continue</h1>
+	<form action="{{ url_for('configure', user_type='applicant') }}" method="post">
+		<div>
+			<label class="font-weight-bold">User ID</label> <p>{{ user_id }}</p> 	
+			<input type="text" class="d-none"  name="company_id" value="{{ company_id }}">
+		</div>
+		<div>
+			<label class="font-weight-bold">Username</label> <p>{{ username }}</p>	
+		</div>
+
+		<div>
+			<label>Name</label>
+			<input class="form-control col-12 col-md-6 my-2" type="text" name="applicant_name" placeholder="Your Name">
+		</div>
+		
+		<div>
+			<label>Email</label>
+			<input class="form-control col-12 col-md-6 my-2" type="email" name="applicant_email" placeholder="Your Email">
+		</div>
+
+		<div>
+			<label>Phone Number</label>
+			<input class="form-control col-12 col-md-6 my-2" type="text" name="applicant_number" placeholder="Your Number">
+		</div>
+		
+		<div>
+			<label>DOB</label>
+			<input class="form-control col-12 col-md-6 my-2" type="date" name="applicant_dob" placeholder="Your Date of Birth">
+		</div>
+
+		<div>
+			<label>Location</label>
+			<input class="form-control col-12 col-md-6 my-2" type="text" name="applicant_location" placeholder="Your Location">
+		</div>
+
+		<div>
+			<button type='submit' class="btn btn-primary px-3 py-1 my-3 rounded">Submit</button>
+		</div>
+	</form>
+</div>
+{% endblock %}

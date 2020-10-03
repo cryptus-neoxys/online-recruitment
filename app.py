@@ -45,14 +45,24 @@ class Applicant(db.Model):
 	applicant_location = db.Column(db.String(1000), primary_key=False)
 	username = db.Column(db.String(100), nullable=False)
 
+class Skill(db.Model):
+	applicant_id = db.Column(db.String(100), primary_key=True)
+	skill = db.Column(db.String(150), primary_key=True)
 	
-
 class Post(db.Model):
 	post_id = db.Column(db.Integer(), primary_key=True)
 	company_id = db.Column(db.String(), nullable=False)
 	company_name = db.Column(db.String(100), nullable=False)
 	job_type = db.Column(db.String(100), nullable=False)
 	job_description = db.Column(db.String(1000), nullable=False)
+
+class Application(db.Model):
+	applicant_id = db.Column(db.String(100), primary_key=True)
+	post_id = db.Column(db.String(100), primary_key=True)
+	company_id = db.Column(db.String(100), nullable=False)
+
+	
+
 
 
 
@@ -71,18 +81,7 @@ app_data = {
 
 @app.route('/')
 def home():
-	posts = Post.query.filter_by().all()
-	all_post = []
-	for post in posts:
-		temp = post.__dict__
-		del temp['_sa_instance_state']
-		company = Company.query.filter_by(company_id = temp['company_id']).first().__dict__
-		temp['company_email'] = company['company_email']
-
-		all_post.append(temp)
-	print(all_post)
-	all_post.reverse()
-	return render_template('home.html', app_data=app_data, posts=all_post)
+	return render_template('home.html', app_data=app_data)
 
 
 @app.route('/signup', methods=['POST', 'GET'])
@@ -127,8 +126,12 @@ def login():
 				#account
 				session['user'] = username
 				session['usertype'] = user.usertype
-				if(not Company.query.filter_by(username = username).first()):
-					return redirect(url_for('configure', user_type=user.usertype))
+				if(user.usertype=='company'):
+					if(not Company.query.filter_by(username = username).first()):
+						return redirect(url_for('configure', user_type=user.usertype))
+				else:
+					if(not Applicant.query.filter_by(username = username).first()):
+						return redirect(url_for('configure', user_type=user.usertype))
 				return redirect(url_for('account'))
 			else:
 				#wrong password
@@ -160,59 +163,64 @@ def account():
 		return redirect(url_for('login'))
 
 @app.route('/configure/<user_type>', methods=['GET', 'POST'])  
-def configure(user_type):  
-	if user_type == 'company':
-		if request.method != 'POST':
-			ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
-			now = datetime.now()
-			date = now.strftime("%Y%m%d%H%M%S")
+def configure(user_type):
+	if user_type == 'company' and user_type==session['usertype']:
+		if(not Company.query.filter_by(username = session['user']).first()):
+			if request.method != 'POST':
+				ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
+				now = datetime.now()
+				date = now.strftime("%Y%m%d%H%M%S")
 
-			company_id = ''.join(ip.split('.')) + date;
+				company_id = ''.join(ip.split('.')) + date;
 
-			print(session['user'])
+				print(session['user'])
 
-			return render_template('configure_company.html', app_data=app_data, company_id=company_id, username=session['user'])
+				return render_template('configure_company.html', app_data=app_data, company_id=company_id, username=session['user'])
+			else:
+				company_name = request.form['company_name']
+				company_type = request.form['company_type']
+				company_vacancies = request.form['company_vacancies']
+				company_id = request.form['company_id']
+				company_email = request.form['company_email']
+
+
+				new_company = Company(company_id=company_id, username=session['user'],company_email=company_email, company_vacancies=int(company_vacancies), company_name=company_name, company_type=company_type)
+				
+				db.session.add(new_company)
+				db.session.commit()
+
+				print(company_name, company_type, company_vacancies)
+				return redirect(url_for('account'))
 		else:
-			company_name = request.form['company_name']
-			company_type = request.form['company_type']
-			company_vacancies = request.form['company_vacancies']
-			company_id = request.form['company_id']
-			company_email = request.form['company_email']
-
-
-			new_company = Company(company_id=company_id, username=session['user'],company_email=company_email, company_vacancies=int(company_vacancies), company_name=company_name, company_type=company_type)
-			
-			db.session.add(new_company)
-			db.session.commit()
-
-			print(company_name, company_type, company_vacancies)
 			return redirect(url_for('account'))
 
-	if user_type == 'applicant':
-		if request.method != 'POST':
-			ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
-			now = datetime.now()
-			date = now.strftime("%Y%m%d%H%M%S")
-			applicant_id = 'U' + ''.join(ip.split('.')) + date;
-			return render_template('configure_user.html', app_data=app_data, applicant_id=applicant_id, username=session['user'])
-		else:
+	if user_type == 'applicant' and user_type==session['usertype']:
+		if(not Applicant.query.filter_by(username = session['user']).first()):
+			if request.method != 'POST':
+				ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
+				now = datetime.now()
+				date = now.strftime("%Y%m%d%H%M%S")
+				applicant_id = 'U' + ''.join(ip.split('.')) + date;
+				return render_template('configure_user.html', app_data=app_data, applicant_id=applicant_id, username=session['user'])
+			else:
+				applicantobj = {
+					'applicant_name' : request.form['applicant_name'],
+					'applicant_email' : request.form['applicant_email'],
+					'applicant_number' : request.form['applicant_number'],
+					'applicant_dob' : request.form['applicant_dob'],
+					'applicant_location' : request.form['applicant_location'],
+					'applicant_id' : request.form['applicant_id']
+				}
 
-			applicantobj = {
-				'applicant_name' : request.form['applicant_name'],
-				'applicant_email' : request.form['applicant_email'],
-				'applicant_number' : request.form['applicant_number'],
-				'applicant_dob' : request.form['applicant_dob'],
-				'applicant_location' : request.form['applicant_location'],
-				'applicant_id' : request.form['applicant_id']
-			}
+				print(applicantobj)
 
-			print(applicantobj)
+				new_applicant = Applicant(applicant_id=applicantobj['applicant_id'], applicant_email=applicantobj['applicant_email'], applicant_number=applicantobj['applicant_number'], applicant_dob=applicantobj['applicant_dob'], applicant_location=applicantobj['applicant_location'], username=session['user'])
+				
+				db.session.add(new_applicant)
+				db.session.commit()
 
-			new_applicant = Applicant(applicant_id=applicantobj['applicant_id'], applicant_email=applicantobj['applicant_email'], applicant_number=applicantobj['applicant_number'], applicant_dob=applicantobj['applicant_dob'], applicant_location=applicantobj['applicant_location'], username=session['user'])
-			
-			db.session.add(new_applicant)
-			db.session.commit()
-
+				return redirect(url_for('account'))
+		else:	
 			return redirect(url_for('account'))
 	else:
 		return redirect(url_for('home'))
@@ -240,18 +248,23 @@ def newpost():
 
 	
 
-@app.route('/post', methods=['GET', 'POST'])
-def post():
+
+
+@app.route('/findjob', methods=['GET', 'POST'])
+def findjob():
 	posts = Post.query.filter_by().all()
 	all_post = []
 	for post in posts:
 		temp = post.__dict__
 		del temp['_sa_instance_state']
+		company = Company.query.filter_by(company_id = temp['company_id']).first().__dict__
+		temp['company_email'] = company['company_email']
+
 		all_post.append(temp)
 	print(all_post)
-	return 'post.html'
+	all_post.reverse()
 
-
+	return render_template('findjob.html', app_data=app_data, posts=all_post )
 
 @app.route('/logout')
 def logout():

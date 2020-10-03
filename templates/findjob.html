@@ -1,0 +1,45 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+		<div class="container col-12 col-md-8  m-0"> 		
+			
+			{% for post in posts%}
+
+
+				<div
+				class="p-4 m-1 mb-3 col-12 d-flex flex-column border"
+			>
+				<div
+					class="d-flex text_medium h4 justify-content-between m-0 flex-row"
+				>
+					<div class="company_name text-danger">{{ post['company_name'] }}</div>
+				</div>
+				<p class="text-muted font-weight-light m-1 text-secondary">
+					Date Posted: 12-Oct-20
+				</p>
+				<div class="post_details m-0">
+					<hr />
+					<div class="job_title p-0 text-dark text_medium h5">
+						Job Title: <strong class="text-info">{{ post['job_type'] }}</strong>
+					</div>
+					<div class="post_content p-2 pl-4 text-left">
+						{{ post['job_description'] }}
+					</div>
+					<hr />
+					<div
+						class="d-flex justify-content-between align-items-end flex-column"
+					>
+						
+						<a href="mailto?:{{ post['company_email' ]}}" class="company_email m-2"
+							>Email</a
+						>
+					</div>
+				</div>
+				<button class="btn btn-outline-success">Apply</button>
+			</div>
+
+			{% endfor %}
+			
+    	</div>
+    	
+{% endblock %}

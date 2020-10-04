@@ -23,11 +23,11 @@ class User(db.Model):
    usertype = db.Column(db.String(100), nullable=False)
    
 
-def __repr__(self, username, password, usertype, name):
-   self.username = username
-   self.password = password
-   self.usertype = usertype
-   self.name = name
+# def __repr__(self, username, password, usertype, name):
+#    self.username = username
+#    self.password = password
+#    self.usertype = usertype
+#    self.name = name
 
 class Company(db.Model):
 	company_id = db.Column(db.String(), primary_key=True)
@@ -45,9 +45,7 @@ class Applicant(db.Model):
 	applicant_location = db.Column(db.String(1000), primary_key=False)
 	username = db.Column(db.String(100), nullable=False)
 
-class Skill(db.Model):
-	applicant_id = db.Column(db.String(100), primary_key=True)
-	skill = db.Column(db.String(150), primary_key=True)
+
 	
 class Post(db.Model):
 	post_id = db.Column(db.Integer(), primary_key=True)
@@ -55,11 +53,17 @@ class Post(db.Model):
 	company_name = db.Column(db.String(100), nullable=False)
 	job_type = db.Column(db.String(100), nullable=False)
 	job_description = db.Column(db.String(1000), nullable=False)
+	post_time = db.Column(db.Date(), nullable=False)
 
 class Application(db.Model):
 	applicant_id = db.Column(db.String(100), primary_key=True)
 	post_id = db.Column(db.String(100), primary_key=True)
 	company_id = db.Column(db.String(100), nullable=False)
+	applicant_skill = db.Column(db.Text(), nullable=False)
+	application_time = db.Column(db.Date(), nullable=False)
+	
+
+	
 
 	
 
@@ -75,7 +79,8 @@ app_data = {
     "author":       "Dev Sharma",
     "html_title":   "Recruitment",
     "project_name": "Recruitment",
-    "keywords":     ""
+    "keywords":     "",
+    "end-point" : "https://127.0.0.1:5000"
 }
 
 
@@ -257,7 +262,24 @@ def newpost():
 		return redirect(url_for('home'))
 
 	
+@app.route('/applyjob', methods=['GET', 'POST'])
+def applyjob():
+	if request.method == "POST":
+		if 'user' in session:
 
+			data = request.get_data()	
+			data = data.decode("utf-8")
+			data = json.loads(data)
+			applicant = Applicant.query.filter_by(username = session['user']).first().__dict__
+
+			data['applicant_id'] = applicant['applicant_id']
+			dateobj = datetime.strptime(data['application']['time'],'%Y-%m-%dT%H:%M:%S.%fZ')			
+			print(data)
+			print(dateobj)
+			print(type(dateobj))
+			
+
+			return 'success'
 
 
 @app.route('/findjob', methods=['GET', 'POST'])
@@ -271,7 +293,7 @@ def findjob():
 		temp['company_email'] = company['company_email']
 
 		all_post.append(temp)
-	print(all_post)
+	
 	all_post.reverse()
 
 	return render_template('findjob.html', app_data=app_data, posts=all_post )

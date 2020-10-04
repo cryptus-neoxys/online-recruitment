@@ -49,7 +49,7 @@
 								class="form-control"
 								rows="7"
 								name="skills"
-								id=""
+								id="skills"
 								required
 							></textarea>
 						</div>
@@ -62,6 +62,7 @@
 						type="button"
 						class="btn btn-success"
 						data-dismiss="modal"
+						onclick="sendData()"
 					>
 						Send Application
 					</button>
@@ -130,18 +131,62 @@
 
 	{% endfor %}
 </div>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script
+  src="https://code.jquery.com/jquery-3.4.1.js"
+  integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
+  crossorigin="anonymous"
+></script>
+
 <script type="text/javascript">
 	const postDescription = document.getElementById('post_description');
 	const companyName = document.getElementById('company_name');
 	const jobTitle = document.getElementById('job_title');
+
+	var currentPOST
+
 	function getData(post) {
 		post = JSON.parse(post.replace(/'/g, `"`));
+		currentPOST = post
 		document.getElementById('modal_buton').click();
 		console.log(post);
 		postDescription.innerHTML = `${post['job_description']}`;
 		companyName.innerHTML = `${post['company_name']}`;
 		jobTitle.innerHTML = `${post['job_type']}`;
 	}
+	
+	function sendData(){
+		let skills = document.getElementById('skills').value;
+		currentPOST['skills'] = skills
+		currentPOST['time'] = (new Date()).toJSON()
+
+		console.log(currentPOST)
+		// axios.post('/applyjob', currentPOST)
+		//   .then(function (response) {
+		//     console.log(response);
+		//   })
+		//   .catch(function (error) {
+		//     console.log(error);
+		//   });
+
+		
+
+		$.ajax({
+			type: 'POST',
+			url : '{{ url_for("applyjob") }}',
+			data : JSON.stringify({
+				'application' : currentPOST
+			}),
+			success: function(response){
+				console.log(response)
+			},
+			error: function(error){
+				console.log(error)
+			}
+		});
+	}
+
 </script>
+
 
 {% endblock %}

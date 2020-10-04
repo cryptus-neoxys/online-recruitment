@@ -5,24 +5,66 @@
 		<div class="modal-dialog modal-dialog-scrollable">
 			<div class="modal-content">
 				<!-- Modal Header -->
-				<div class="modal-header d-flex ">
-					<h1 class="modal-title">Application</h1>
-					<h3>Company: <span id='company_id'></span></h3>
-					
-					<button type="button" class="close" data-dismiss="modal">
+				<div class="modal-header">
+					<h3 class="modal-title mx-auto" id="">Application</h3>
+					<!-- <button type="button" class="close" data-dismiss="modal">
 						×
-					</button>
+					</button> -->
 				</div>
 
 				<!-- Modal body -->
-				<div class="modal-body">
-					
-
-					
+				<div
+					class="modal-body d-flex flex-column justify-content-between"
+				>
+					<div class="d-flex m-2 row justify-content-between">
+						<h4 class="d-block text-weight-light">
+							Company:
+							<span
+								class="h4 text-danger m-1"
+								id="company_name"
+							></span>
+						</h4>
+						<h4 class="d-block text-weight-light">
+							Job Title:
+							<span
+								class="h4 text-primary m-1"
+								id="job_title"
+							></span>
+						</h4>
+					</div>
+					<div class="ml-4 mb-2">
+						<p
+							class=""
+							style="font: 1.2em light"
+							id="post_description"
+						></p>
+					</div>
+					<form action="POST">
+						<div class="form-group">
+							<label for="skills" class="h5"
+								>List Your Skills for the Job Profile</label
+							>
+							<textarea
+								placeholder="Your Skills"
+								class="form-control"
+								rows="7"
+								name="skills"
+								id=""
+								required
+							></textarea>
+						</div>
+					</form>
 				</div>
 
 				<!-- Modal footer -->
-				<div class="modal-footer">
+				<div class="modal-footer d-flex justify-content-between">
+					<button
+						type="button"
+						class="btn btn-success"
+						data-dismiss="modal"
+					>
+						Send Application
+					</button>
 					<button
 						type="button"
 						class="btn btn-danger"
@@ -40,7 +82,7 @@
 		class="btn btn-primary d-none"
 		data-toggle="modal"
 		data-target="#myModal"
-		id='modal_buton'
+		id="modal_buton"
 	>
 		Open modal
 	</button>
@@ -89,10 +131,16 @@
 	{% endfor %}
 </div>
 <script type="text/javascript">
+	const postDescription = document.getElementById('post_description');
+	const companyName = document.getElementById('company_name');
+	const jobTitle = document.getElementById('job_title');
 	function getData(post) {
-		post = JSON.parse(post.replace(/'/g,`"`));
-		document.getElementById('modal_buton').click()
-		console.log(post)
+		post = JSON.parse(post.replace(/'/g, `"`));
+		document.getElementById('modal_buton').click();
+		console.log(post);
+		postDescription.innerHTML = `${post['job_description']}`;
+		companyName.innerHTML = `${post['company_name']}`;
+		jobTitle.innerHTML = `${post['job_type']}`;
 	}
 </script>
 

@@ -81,7 +81,18 @@ app_data = {
 
 @app.route('/')
 def home():
-	return render_template('home.html', app_data=app_data)
+	posts = Post.query.filter_by().all()
+	all_post = []
+	for post in posts:
+		temp = post.__dict__
+		del temp['_sa_instance_state']
+		company = Company.query.filter_by(company_id = temp['company_id']).first().__dict__
+		temp['company_email'] = company['company_email']
+
+		all_post.append(temp)
+	print(all_post)
+	all_post.reverse()
+	return render_template('home.html', app_data=app_data, post=all_post)
 
 
 @app.route('/signup', methods=['POST', 'GET'])
@@ -106,7 +117,6 @@ def signup():
 
 			session['user'] = username
 			session['user_type'] = usertype
-
 			return redirect(url_for('configure', user_type=usertype))
 	else:
 		return render_template('signup.html', app_data=app_data)
@@ -270,6 +280,8 @@ def findjob():
 def logout():
 	if 'user' in session:
 		session.pop('user', None)
+	if 'usertype' in session:
+		session.pop('usertype', None)
 	return redirect(url_for('home'))
 
 @app.route('/about')

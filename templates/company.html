@@ -1,19 +1,14 @@
-{% extends 'layout.html' %}
+{% extends 'layout.html' %} {% block body %} {%- for category, message in
+get_flashed_messages(with_categories = true) %}
+<div class="alert alert-success">{{ message }}</div>
+{%- endfor %}
 
-{% block body %}
-	
-	{%- for category, message in get_flashed_messages(with_categories = true) %}
-         <div class = "alert alert-success">
-            {{ message }}
-         </div>
-    {%- endfor %}
-
-    <div class="container">
-    	
-        <h1>{{company['username']}}</h1>
-        <h3>{{company['company_name']}}</h3>
-        <h3>{{company['email']}}</h3>
-    </div>
-    
+<div class="container">
+    <h1>{{company['username']}}</h1>
+    <h3>{{company['company_name']}}</h3>
+    <h3>{{company['company_email']}}</h3>
+    <h3>{{company['company_id']}}</h3>
+    <h3>{{company['company_vacancies']}}</h3>
+</div>
 
 {% endblock %}

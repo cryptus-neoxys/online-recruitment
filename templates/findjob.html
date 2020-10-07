@@ -146,7 +146,9 @@
 	var currentPOST
 
 	function getData(post) {
-		post = JSON.parse(post.replace(/'/g, `"`));
+		console.log(post)
+		console.log(post.replace(/'/g, '"'))
+		post = JSON.parse(post.replace(/'/g, '"'));
 		currentPOST = post
 		document.getElementById('modal_buton').click();
 		console.log(post);
@@ -179,6 +181,9 @@
 			}),
 			success: function(response){
 				console.log(response)
+				if(response == 'success'){
+					alert("Application Submitted")
+				}
 			},
 			error: function(error){
 				console.log(error)

@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta, date
@@ -21,13 +18,6 @@ class User(db.Model):
    name = db.Column(db.String(100), nullable=False)
    password = db.Column(db.String(100), nullable=False)
    user_type = db.Column(db.String(100), nullable=False)
-   
-
-# def __repr__(self, username, password, user_type, name):
-#    self.username = username
-#    self.password = password
-#    self.user_type = user_type
-#    self.name = name
 
 class Company(db.Model):
 	company_id = db.Column(db.String(), primary_key=True)
@@ -45,8 +35,6 @@ class Applicant(db.Model):
 	applicant_location = db.Column(db.String(1000), primary_key=False)
 	username = db.Column(db.String(100), nullable=False)
 
-
-	
 class Post(db.Model):
 	post_id = db.Column(db.Integer(), primary_key=True)
 	company_id = db.Column(db.String(), nullable=False)
@@ -59,19 +47,19 @@ class Application(db.Model):
 	applicant_id = db.Column(db.String(100), primary_key=True)
 	post_id = db.Column(db.String(100), primary_key=True)
 	company_id = db.Column(db.String(100), nullable=False)
-	applicant_skill = db.Column(db.Text(), nullable=False)
+	applicant_skill = db.Column(db.String(1000), nullable=False)
 	application_time = db.Column(db.Date(), nullable=False)
+	application_status = db.Column(db.String(100), nullable=False, default='pending')
+
+class Offer_Letter(db.Model):
+	offer_id = db.Column(db.String(100), primary_key=True)
+	company_id = db.Column(db.String(100), nullable=False)
+	applicant_id = db.Column(db.String(100), nullable=False)
+	offer_date = db.Column(db.Date(), nullable=False)
+	package = db.Column(db.Integer(), nullable=False)
+	details = db.Column(db.String(1000), nullable=False)
 	
-
-	
-
-	
-
-
-
-
-
-db.create_all() 
+db.create_all()
 
 app_data = {
     "name":         "Recruitment",
@@ -169,11 +157,38 @@ def account():
 		if user.user_type == 'company':
 			company = Company.query.filter_by(username = session['user']).first()
 			company = company.__dict__
-			return render_template('company.html', app_data=app_data, company=company)
+			applications = Application.query.filter_by(company_id = company['company_id']).all()
+			all_application = []
+			for application in applications:
+				
+				application = application.__dict__
+				
+				applicant = Applicant.query.filter_by(applicant_id = application['applicant_id']).first().__dict__
+				user = User.query.filter_by(username = applicant['username']).first().__dict__
+
+				application['applicant'] = applicant
+				applicant['applicant_name'] = user['name']
+
+				all_application.append(application)
+
+			print(all_application)
+			return render_template('company.html', app_data=app_data, company=company, applications=all_application)
 		else:
 			applicant = Applicant.query.filter_by(username = session['user']).first()
 			applicant = applicant.__dict__
-			return render_template('applicant.html', app_data=app_data, applicant=applicant)
+			applications = Application.query.filter_by(applicant_id = applicant['applicant_id']).all()
+			all_application = []
+			for application in applications:
+				
+				application = application.__dict__
+
+				company = Company.query.filter_by(company_id = application['company_id']).first().__dict__
+				
+				application['company'] = company
+				all_application.append(application)
+
+			print(all_application)
+			return render_template('applicant.html', app_data=app_data, applicant=applicant, applications=all_application)
 	else:
 		return redirect(url_for('login'))
 
@@ -275,14 +290,23 @@ def applyjob():
 			data = request.get_data()	
 			data = data.decode("utf-8")
 			data = json.loads(data)
+			print("APPLY JOB")
+			print(data)
 			applicant = Applicant.query.filter_by(username = session['user']).first().__dict__
 
 			data['applicant_id'] = applicant['applicant_id']
 			dateobj = datetime.strptime(data['application']['time'],'%Y-%m-%dT%H:%M:%S.%fZ')			
-			print(data)
-			print(dateobj)
-			print(type(dateobj))
 			
+			# applicant_id = db.Column(db.String(100), primary_key=True)
+			# post_id = db.Column(db.String(100), primary_key=True)
+			# company_id = db.Column(db.String(100), nullable=False)
+			# applicant_skill = db.Column(db.Text(), nullable=False)
+			# application_time = db.Column(db.Date(), nullable=False)
+
+			new_application = Application(applicant_id=data['applicant_id'], post_id=data['application']['post_id'], company_id=data['application']['company_id'], applicant_skill=data['application']['skills'], application_time=dateobj)
+			
+			db.session.add(new_application)
+			db.session.commit()
 
 			return 'success'
 
@@ -296,7 +320,7 @@ def findjob():
 		del temp['_sa_instance_state']
 		company = Company.query.filter_by(company_id = temp['company_id']).first().__dict__
 		temp['company_email'] = company['company_email']
-
+		temp['post_time'] = temp['post_time'].strftime("%Y-%m-%d")
 		all_post.append(temp)
 	
 	all_post.reverse()

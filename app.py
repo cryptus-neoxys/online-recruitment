@@ -20,13 +20,13 @@ class User(db.Model):
    username = db.Column(db.String(100), primary_key=True)
    name = db.Column(db.String(100), nullable=False)
    password = db.Column(db.String(100), nullable=False)
-   usertype = db.Column(db.String(100), nullable=False)
+   user_type = db.Column(db.String(100), nullable=False)
    
 
-# def __repr__(self, username, password, usertype, name):
+# def __repr__(self, username, password, user_type, name):
 #    self.username = username
 #    self.password = password
-#    self.usertype = usertype
+#    self.user_type = user_type
 #    self.name = name
 
 class Company(db.Model):
@@ -114,15 +114,15 @@ def signup():
 			username = request.form['username']
 			password = request.form['password']
 			name = request.form['name']
-			usertype = request.form['usertype']
-			new_user = User(username=username, password=password, name=name, usertype=usertype)
+			user_type = request.form['user_type']
+			new_user = User(username=username, password=password, name=name, user_type=user_type)
 			
 			db.session.add(new_user)
 			db.session.commit()
 
 			session['user'] = username
-			session['user_type'] = usertype
-			return redirect(url_for('configure', user_type=usertype))
+			session['user_type'] = user_type
+			return redirect(url_for('configure', user_type=user_type))
 	else:
 		return render_template('signup.html', app_data=app_data)
 
@@ -140,13 +140,13 @@ def login():
 			if user.password == password and user.username == username:
 				#account
 				session['user'] = username
-				session['usertype'] = user.usertype
-				if(user.usertype=='company'):
+				session['user_type'] = user.user_type
+				if(user.user_type=='company'):
 					if(not Company.query.filter_by(username = username).first()):
-						return redirect(url_for('configure', user_type=user.usertype))
+						return redirect(url_for('configure', user_type=user.user_type))
 				else:
 					if(not Applicant.query.filter_by(username = username).first()):
-						return redirect(url_for('configure', user_type=user.usertype))
+						return redirect(url_for('configure', user_type=user.user_type))
 				return redirect(url_for('account'))
 			else:
 				#wrong password
@@ -166,7 +166,7 @@ def login():
 def account():
 	if 'user' in session:
 		user = User.query.filter_by(username = session['user']).first()
-		if user.usertype == 'company':
+		if user.user_type == 'company':
 			company = Company.query.filter_by(username = session['user']).first()
 			company = company.__dict__
 			return render_template('company.html', app_data=app_data, company=company)
@@ -179,7 +179,7 @@ def account():
 
 @app.route('/configure/<user_type>', methods=['GET', 'POST'])  
 def configure(user_type):
-	if user_type == 'company' and user_type==session['usertype']:
+	if user_type == 'company' and user_type==session['user_type']:
 		if(not Company.query.filter_by(username = session['user']).first()):
 			if request.method != 'POST':
 				ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
@@ -209,7 +209,7 @@ def configure(user_type):
 		else:
 			return redirect(url_for('account'))
 
-	if user_type == 'applicant' and user_type==session['usertype']:
+	if user_type == 'applicant' and user_type==session['user_type']:
 		if(not Applicant.query.filter_by(username = session['user']).first()):
 			if request.method != 'POST':
 				ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
@@ -244,7 +244,7 @@ def configure(user_type):
 def newpost():
 	if request.method == 'GET':
 		if 'user' in session:
-			if session['usertype'] == 'company':
+			if session['user_type'] == 'company':
 				company = Company.query.filter_by(username = session['user']).first().__dict__
 				return render_template('newpost.html', app_data=app_data, company=company)		
 			else:
@@ -255,7 +255,12 @@ def newpost():
 		print(request.form['companyid'])
 		now = datetime.now()
 		timestamp = now.strftime("%Y%m%d%H%M%S")
-		new_post = Post(post_id=timestamp ,company_id=request.form['companyid'], company_name=request.form['companyname'], job_type=request.form['job_type'], job_description=request.form['job_description'])			
+
+		print(request.form['post_time'])
+
+		dateobj = datetime.strptime(request.form['post_time'],'%Y-%m-%dT%H:%M:%S.%fZ')
+
+		new_post = Post(post_id=timestamp, post_time=dateobj, company_id=request.form['companyid'], company_name=request.form['companyname'], job_type=request.form['job_type'], job_description=request.form['job_description'])			
 		db.session.add(new_post)
 		db.session.commit()
 		
@@ -302,8 +307,8 @@ def findjob():
 def logout():
 	if 'user' in session:
 		session.pop('user', None)
-	if 'usertype' in session:
-		session.pop('usertype', None)
+	if 'user_type' in session:
+		session.pop('user_type', None)
 	return redirect(url_for('home'))
 
 @app.route('/about')

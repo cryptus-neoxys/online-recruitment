@@ -19,13 +19,13 @@
 					<a class="nav-link" href="{{ url_for('home') }}">Home</a>
 				</li>
 
-				{% if session['usertype'] == 'company' %}
+				{% if session['user_type'] == 'company' %}
 				<li class="nav-item">
 					<a class="nav-link" href="{{ url_for('newpost') }}"
 						>Create New Post</a
 					>
 				</li>
-				{% endif %} {% if session['usertype'] != 'company' %}
+				{% endif %} {% if session['user_type'] != 'company' %}
 				<li class="nav-item">
 					<a class="nav-link" href="{{ url_for('findjob') }}"
 						>Find Jobs</a

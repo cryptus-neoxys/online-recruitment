@@ -42,11 +42,15 @@
 
             <input type="text" name="companyid" class="d-none" value="{{ company['company_id'] }}">
             <input type="text" name="companyname" class="d-none" value="{{ company['company_name'] }}">
+            <input type="text" name="post_time" class="d-none" id='time_input' >
         </form> 
 
         
 
     </div>
+    <script type="text/javascript">
+        document.getElementById('time_input').value = (new Date()).toJSON()
+    </script>
     
 
 {% endblock %}

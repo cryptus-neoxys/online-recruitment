@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta, date
 import json
+from sqlalchemy.orm import sessionmaker
 
 DEVELOPMENT_ENV  = True
 
@@ -60,6 +61,8 @@ class Offer_Letter(db.Model):
 	details = db.Column(db.String(1000), nullable=False)
 	
 db.create_all()
+
+
 
 app_data = {
     "name":         "Recruitment",
@@ -150,6 +153,8 @@ def login():
 		return render_template('login.html', app_data=app_data)
 
 
+
+
 @app.route('/account', methods=['POST', 'GET'])
 def account():
 	if 'user' in session:
@@ -168,6 +173,11 @@ def account():
 
 				application['applicant'] = applicant
 				applicant['applicant_name'] = user['name']
+				del application['_sa_instance_state']
+				del application['applicant']['_sa_instance_state']
+				application['application_time'] = application['application_time'].strftime('%m/%d/%Y')
+				# del applicant['_sa_instance_state']
+				# del applicant['applicant']['_sa_instance_state']
 
 				all_application.append(application)
 
@@ -309,6 +319,17 @@ def applyjob():
 			db.session.commit()
 
 			return 'success'
+@app.route('/application_action', methods=['GET', 'POST'])
+def application_action():
+	if request.method == 'POST':
+		data = request.get_data()	
+		data = data.decode("utf-8")
+		data = json.loads(data)
+		print(data)
+		res = db.session.query(Application).filter(Application.post_id == data['applicant']['post_id']).update({Application.application_status : data['action']},  synchronize_session = False)
+		db.session.commit()
+		print(res)
+		return 'success'
 
 
 @app.route('/findjob', methods=['GET', 'POST'])

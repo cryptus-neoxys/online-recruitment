@@ -3,10 +3,10 @@ get_flashed_messages(with_categories = true) %}
 <div class="alert alert-success">{{ message }}</div>
 {%- endfor %}
 
-<div class="container col-md-8 border bg-light">
+<div class="container col-md-10 border bg-light">
 	<div class="d-flex py-1 flex-column justify-content-between">
 		<div
-			class="d-flex my-4 flex-row w-100 justify-content-between align-items-between"
+			class="d-flex my-4 flex-row w-100 justify-content-between flex-wrap align-items-between"
 		>
 			<!-- <h1>{{applicant['applicant_name']}}</h1> -->
 			<h4>
@@ -39,15 +39,13 @@ get_flashed_messages(with_categories = true) %}
 	</div>
 	<div>
 		{% for application in applications %}
-    		<div class="border m-3 p-4">
-    			<p>{{ application['applicant_id']}}</p>
-    			<p>{{ application['company']['company_name'] }}</p>
-    			<p>{{ application['applicant_skill']}}</p>
-    			<p>{{ application['application_status']}}</p>
-
-
-    		</div>
-    	{% endfor %}
+		<div class="border m-3 p-4">
+			<p>{{ application['applicant_id']}}</p>
+			<p>{{ application['company']['company_name'] }}</p>
+			<p>{{ application['applicant_skill']}}</p>
+			<p>{{ application['application_status']}}</p>
+		</div>
+		{% endfor %}
 	</div>
 </div>
 

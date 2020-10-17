@@ -92,7 +92,8 @@
 	<div class="p-4 m-1 mb-3 col-12 d-flex flex-column border">
 		<div class="d-flex text_medium h4 justify-content-between m-0 flex-row">
 			<div class="company_name text-danger">
-				{{ post['company_name'] }}
+				<a class="text-danger" href="/user/{{post['company']['username']}}"><h2>{{ post['company_name'] }}</h2></a>
+				<p class="text-primary">{{ post['company']['company_type'] }}</p>
 			</div>
 		</div>
 		<p class="text-muted font-weight-light m-1 text-secondary">

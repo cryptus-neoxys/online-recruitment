@@ -155,6 +155,7 @@ def account():
 			all_application = []
 			hired = []
 			rejected = []
+			applications.reverse()
 			for application in applications:
 				
 				application = application.__dict__
@@ -178,6 +179,7 @@ def account():
 					all_application.append(application)
 
 			print(all_application)
+			
 			return render_template('company.html', app_data=app_data, company=company, applications=all_application, rejected=rejected, hired=hired)
 		else:
 			applicant = Applicant.query.filter_by(username = session['user']).first()
@@ -349,21 +351,23 @@ def application_action():
 @app.route('/findjob', methods=['GET', 'POST'])
 def findjob():
 
-	username = session['user']
-
-	print(username)
-
-	applicant = Applicant.query.filter_by(username = username).first().__dict__
-
-	applicant_id = applicant['applicant_id']
 	all_applied = []
-	all_application = Application.query.filter_by(applicant_id=applicant_id).all()
-	for application in all_application:
-		all_applied.append(application.__dict__['post_id'])
+	if 'user' in session:
+		username = session['user']
 
-	print(all_applied)
+		print(username)
 
-	# print(all_application)	
+		applicant = Applicant.query.filter_by(username = username).first().__dict__
+
+		applicant_id = applicant['applicant_id']
+		
+		all_application = Application.query.filter_by(applicant_id=applicant_id).all()
+		for application in all_application:
+			all_applied.append(application.__dict__['post_id'])
+
+	
+
+	
 
 	posts = Post.query.filter_by().all()
 	all_post = []
@@ -372,12 +376,15 @@ def findjob():
 		del temp['_sa_instance_state']
 		company = Company.query.filter_by(company_id = temp['company_id']).first().__dict__
 		temp['company_email'] = company['company_email']
+		temp['company'] = company
 		temp['post_time'] = temp['post_time'].strftime("%Y-%m-%d")
 		if (str(temp['post_id']) not in all_applied):
 			all_post.append(temp)
 	
 
 	all_post.reverse()
+
+	print(all_post)
 
 	return render_template('findjob.html', app_data=app_data, posts=all_post )
 

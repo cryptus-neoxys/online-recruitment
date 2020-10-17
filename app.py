@@ -77,18 +77,7 @@ app_data = {
 
 @app.route('/')
 def home():
-	posts = Post.query.filter_by().all()
-	all_post = []
-	for post in posts:
-		temp = post.__dict__
-		del temp['_sa_instance_state']
-		company = Company.query.filter_by(company_id = temp['company_id']).first().__dict__
-		temp['company_email'] = company['company_email']
-
-		all_post.append(temp)
-	print(all_post)
-	all_post.reverse()
-	return render_template('home.html', app_data=app_data, post=all_post)
+	return render_template('home.html', app_data=app_data)
 
 
 @app.route('/signup', methods=['POST', 'GET'])
@@ -164,6 +153,8 @@ def account():
 			company = company.__dict__
 			applications = Application.query.filter_by(company_id = company['company_id']).all()
 			all_application = []
+			hired = []
+			rejected = []
 			for application in applications:
 				
 				application = application.__dict__
@@ -178,11 +169,16 @@ def account():
 				application['application_time'] = application['application_time'].strftime('%m/%d/%Y')
 				# del applicant['_sa_instance_state']
 				# del applicant['applicant']['_sa_instance_state']
-
-				all_application.append(application)
+				print(application)
+				if application['application_status'] == 'reject':
+					rejected.append(application)
+				elif application['application_status'] == 'hire':
+					hired.append(application)
+				else:
+					all_application.append(application)
 
 			print(all_application)
-			return render_template('company.html', app_data=app_data, company=company, applications=all_application)
+			return render_template('company.html', app_data=app_data, company=company, applications=all_application, rejected=rejected, hired=hired)
 		else:
 			applicant = Applicant.query.filter_by(username = session['user']).first()
 			applicant = applicant.__dict__
@@ -195,12 +191,29 @@ def account():
 				company = Company.query.filter_by(company_id = application['company_id']).first().__dict__
 				
 				application['company'] = company
+				
 				all_application.append(application)
 
-			print(all_application)
+			
 			return render_template('applicant.html', app_data=app_data, applicant=applicant, applications=all_application)
 	else:
 		return redirect(url_for('login'))
+
+@app.route('/user/<username>', methods=['GET', 'POST'])
+def user(username):
+	user = User.query.filter_by(username =username).first()
+	if user:
+		user = user.__dict__
+		if user['user_type'] == 'company':
+			user_data = Company.query.filter_by(username= username).first().__dict__
+		else:
+			user_data = Applicant.query.filter_by(username= username).first().__dict__
+			user_data['applicant_name'] = user['name']
+		print(user_data)
+		return render_template('user.html', app_data=app_data, user_type=user['user_type'], user_data=user_data)
+	else:
+		flash('No such user found', 'error')
+		return render_template('home.html', app_data=app_data)
 
 @app.route('/configure/<user_type>', methods=['GET', 'POST'])  
 def configure(user_type):
@@ -319,6 +332,7 @@ def applyjob():
 			db.session.commit()
 
 			return 'success'
+			
 @app.route('/application_action', methods=['GET', 'POST'])
 def application_action():
 	if request.method == 'POST':
@@ -326,7 +340,7 @@ def application_action():
 		data = data.decode("utf-8")
 		data = json.loads(data)
 		print(data)
-		res = db.session.query(Application).filter(Application.post_id == data['applicant']['post_id']).update({Application.application_status : data['action']},  synchronize_session = False)
+		res = db.session.query(Application).filter(Application.post_id == data['applicant']['post_id'], Application.applicant_id == data['applicant']['applicant_id']).update({Application.application_status : data['action']},  synchronize_session = False)
 		db.session.commit()
 		print(res)
 		return 'success'
@@ -334,6 +348,23 @@ def application_action():
 
 @app.route('/findjob', methods=['GET', 'POST'])
 def findjob():
+
+	username = session['user']
+
+	print(username)
+
+	applicant = Applicant.query.filter_by(username = username).first().__dict__
+
+	applicant_id = applicant['applicant_id']
+	all_applied = []
+	all_application = Application.query.filter_by(applicant_id=applicant_id).all()
+	for application in all_application:
+		all_applied.append(application.__dict__['post_id'])
+
+	print(all_applied)
+
+	# print(all_application)	
+
 	posts = Post.query.filter_by().all()
 	all_post = []
 	for post in posts:
@@ -342,8 +373,10 @@ def findjob():
 		company = Company.query.filter_by(company_id = temp['company_id']).first().__dict__
 		temp['company_email'] = company['company_email']
 		temp['post_time'] = temp['post_time'].strftime("%Y-%m-%d")
-		all_post.append(temp)
+		if (str(temp['post_id']) not in all_applied):
+			all_post.append(temp)
 	
+
 	all_post.reverse()
 
 	return render_template('findjob.html', app_data=app_data, posts=all_post )

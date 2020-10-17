@@ -1,4 +1,9 @@
 {% extends 'layout.html' %} {% block body %}
+{%- for category, message in get_flashed_messages(with_categories = true) %}
+         <div class = "alert alert-danger">
+            {{ message }}
+         </div>
+    {%- endfor %}
 <div class="jumbotron">
 	<h1 class="display-4">{{ app_data['author'] }}</h1>
 

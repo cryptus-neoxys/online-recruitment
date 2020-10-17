@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    {% if user_type == 'company' %}
+        <div>
+            <h1>Company</h1>
+            <h4>Company Name: {{  user_data['company_name'] }}</h4>
+        </div>
+    {% else %}
+        <div>
+            <h1>Applicant</h1>
+            <h4>Applicant Name: {{ user_data['applicant_name']}}
+        </div>
+    {% endif %}
+{% endblock %}

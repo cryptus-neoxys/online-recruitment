@@ -59,7 +59,16 @@ class Offer_Letter(db.Model):
 	offer_date = db.Column(db.Date(), nullable=False)
 	package = db.Column(db.Integer(), nullable=False)
 	details = db.Column(db.String(1000), nullable=False)
-	
+
+# class Interview(db.Model):
+# 	interview_id = db.Column(db.String(100), primary_key=True)
+# 	interview_details = db.Column(db.String(100), nullable=False)
+# 	interview_type = db.Column(db.String(100), nullable=False)
+# 	interview_date = db.Column(db.Date(), nullable=False)
+# 	company_id = db.Column(db.String(100), nullable=False)
+# 	incharge = db.Column(db.String(100), nullable=False)
+# 	applicant_id = db.Column(db.String(100), nullable=False)
+
 db.create_all()
 
 
@@ -378,10 +387,10 @@ def findjob():
 		temp['company_email'] = company['company_email']
 		temp['company'] = company
 		temp['post_time'] = temp['post_time'].strftime("%Y-%m-%d")
+		del temp['company']['_sa_instance_state']
 		if (str(temp['post_id']) not in all_applied):
 			all_post.append(temp)
-	
-
+	print(all_post)
 	all_post.reverse()
 
 	print(all_post)

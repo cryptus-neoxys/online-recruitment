@@ -8,7 +8,48 @@ get_flashed_messages(with_categories = true) %}
     <h3>Company Name: {{company['company_name']}}</h3>
     <!-- <h3>{{company['company_email']}}</h3>
     <h3>{{company['company_id']}}</h3>
-    <h3>{{company['company_vacancies']}}</h3> -->
+	<h3>{{company['company_vacancies']}}</h3> -->
+	
+
+<!-- Button to Open the Modal -->
+<button type="button" class="btn btn-primary d-none" data-toggle="modal" data-target="#interviewModal" id="interviewbtn">
+	Open modal
+  </button>
+  
+  <!-- The Modal -->
+  <div class="modal fade" id="interviewModal">
+	<div class="modal-dialog">
+	  <div class="modal-content">
+  
+		<!-- Modal Header -->
+		<div class="modal-header">
+		  <h4 class="modal-title">Schedule Interview</h4>
+		  <button type="button" class="close" data-dismiss="modal">&times;</button>
+		</div>
+  
+		<!-- Modal body -->
+		<div class="modal-body">
+		  <input type="text" id="interview_applicant_id" class="d-none">
+		  <input type="text" id="interview_post_id" class="d-none">
+
+		<label>Interviewer</label>
+		  <input type="text" class="form-control" placeholder="Interviewer" id="interviewer" />
+		<label>Interview Date</label>
+		<input type="date" class="form-control" placeholder="Interview Date" id="interviewdate" />
+		<label>Interview Details</label>
+		  <textarea placeholder="Interview Discription" class="form-control" id="interviewdetails"></textarea>
+
+		  <button class="btn btn-success m-4" onclick="sendInterview()">Submit</button>
+		</div>
+  
+		<!-- Modal footer -->
+		<div class="modal-footer">
+		  <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+		</div>
+  
+	  </div>
+	</div>
+  </div>
 
     <div>
 
@@ -44,6 +85,10 @@ get_flashed_messages(with_categories = true) %}
 					<p>{{ hire['applicant']['applicant_location']}}</p>
 					<p>{{ hire['post_id']}}</p>
 					<p>{{ hire['application_status']}}</p>
+					<div class="text-right">
+						<button onclick="applicantAction(`{{ application }}`,'hire')" class="btn btn-success py-0">Hire</button>
+						<button onclick="applicantAction(`{{ application }}`,'reject')"class="btn btn-danger py-0">Reject</button>
+					</div>
 				</div>
 				
 			{% endfor %}
@@ -65,14 +110,63 @@ get_flashed_messages(with_categories = true) %}
     </div>
 </div>
 <script>
+
+
+	function sendInterview(){
+
+		interview = {
+			'applicant_id' : document.getElementById('interview_applicant_id').value,
+			'post_id' : document.getElementById('interview_post_id').value,
+			'interviewer' : document.getElementById('interviewer').value,
+			'interview_date' : document.getElementById('interviewdate').value,
+			'interview_details' : document.getElementById('interviewdetails').value,
+		}
+
+		console.log(interview)
+		
+			
+		$.ajax({
+			'type' : 'POST',
+			'url' : `{{ url_for('send_interview') }}`,
+			'data' : JSON.stringify({
+				'interview' : interview,
+			}),
+			'success' : function(response){
+				console.log(response)
+				// location.reload();
+				
+			},
+			'error' : function(error){
+				console.log(error)
+			}
+		
+		});
+		
+
+	}	
+
 	function applicantAction(applicant, action){
 		applicant = JSON.parse(applicant.replace(/'/g, '"'));
 		console.log(applicant)
 		console.log(action)
 
-		let confirmAction = confirm('Proceed with '+ action)
+		
 
-		if(confirmAction ==  true){
+		if(action == 'hire'){
+			//modal for offer letter
+			
+		}
+
+		if(action == 'waitlist'){
+			//interview modal
+			document.getElementById('interviewbtn').click()
+			document.getElementById('interview_applicant_id').value = applicant['applicant_id']
+			document.getElementById('interview_post_id').value = applicant['post_id']
+		}
+		
+		let confirmAction = true//confirm('Proceed with '+ action)
+
+		if(confirmAction ==  true && action=='reject'){
 			console.log('ajax call')
 			$.ajax({
 				'type' : 'POST',
@@ -83,6 +177,7 @@ get_flashed_messages(with_categories = true) %}
 				}),
 				'success' : function(response){
 					console.log(response)
+					// location.reload();
 				},
 				'error' : function(error){
 					console.log(error)

@@ -60,17 +60,15 @@ class Offer_Letter(db.Model):
 	package = db.Column(db.Integer(), nullable=False)
 	details = db.Column(db.String(1000), nullable=False)
 
-# class Interview(db.Model):
-# 	interview_id = db.Column(db.String(100), primary_key=True)
-# 	interview_details = db.Column(db.String(100), nullable=False)
-# 	interview_type = db.Column(db.String(100), nullable=False)
-# 	interview_date = db.Column(db.Date(), nullable=False)
-# 	company_id = db.Column(db.String(100), nullable=False)
-# 	incharge = db.Column(db.String(100), nullable=False)
-# 	applicant_id = db.Column(db.String(100), nullable=False)
+class Interview(db.Model):
+	interview_id = db.Column(db.String(100), primary_key=True)
+	interview_details = db.Column(db.String(100), nullable=False)
+	interview_date = db.Column(db.Date(), nullable=False)
+	company_id = db.Column(db.String(100), nullable=False)
+	interviewer = db.Column(db.String(100), nullable=False)
+	applicant_id = db.Column(db.String(100), nullable=False)
 
 db.create_all()
-
 
 
 app_data = {
@@ -188,6 +186,8 @@ def account():
 					all_application.append(application)
 
 			print(all_application)
+
+			  
 			
 			return render_template('company.html', app_data=app_data, company=company, applications=all_application, rejected=rejected, hired=hired)
 		else:
@@ -205,8 +205,16 @@ def account():
 				
 				all_application.append(application)
 
-			
-			return render_template('applicant.html', app_data=app_data, applicant=applicant, applications=all_application)
+			interviews = Interview.query.filter_by(applicant_id = applicant['applicant_id']).all()
+			print("Interview")
+			print(interviews)
+			all_interviews = []
+			for interview in interviews:
+				company = Company.query.filter_by(company_id = application['company_id']).first().__dict__
+				interview = interview.__dict__
+				interview['company'] = company
+				all_interviews.append(interview)
+			return render_template('applicant.html', app_data=app_data, applicant=applicant, applications=all_application, interviews=all_interviews)
 	else:
 		return redirect(url_for('login'))
 
@@ -354,8 +362,34 @@ def application_action():
 		res = db.session.query(Application).filter(Application.post_id == data['applicant']['post_id'], Application.applicant_id == data['applicant']['applicant_id']).update({Application.application_status : data['action']},  synchronize_session = False)
 		db.session.commit()
 		print(res)
-		return 'success'
 
+		#add to interview or hire
+		return 'success'
+@app.route('/send_interview', methods=['GET', 'POST'])
+def send_interview():
+	if request.method == 'POST':
+		data = request.get_data()	
+		data = data.decode("utf-8")
+		data = json.loads(data)
+		print(data)
+		res = db.session.query(Application).filter(Application.post_id == data['interview']['post_id'], Application.applicant_id == data['interview']['applicant_id']).update({Application.application_status : 'waitlist'},  synchronize_session = False)
+
+		company_id = db.session.query(Company).filter_by(username= session['user']).first().__dict__['company_id']
+
+		ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
+		now = datetime.now()
+		date = now.strftime("%Y%m%d%H%M%S")
+		interview_id = 'I' + ''.join(ip.split('.')) + date
+
+		print(company_id) 
+		print(type(data['interview']['interview_date']))
+		interview_date = datetime.strptime(data['interview']['interview_date'], '%Y-%m-%d')
+
+		new_interview = Interview(interview_id=interview_id, interview_details = data['interview']['interview_details'], interview_date=interview_date, company_id=company_id, interviewer=data['interview']['interviewer'], applicant_id=data['interview']['applicant_id'])
+		db.session.add(new_interview)
+		db.session.commit()
+
+		return 'success'
 
 @app.route('/findjob', methods=['GET', 'POST'])
 def findjob():

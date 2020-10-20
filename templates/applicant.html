@@ -46,6 +46,16 @@ get_flashed_messages(with_categories = true) %}
 			<p>{{ application['application_status']}}</p>
 		</div>
 		{% endfor %}
+
+		<h1>Interviews</h1>
+		{% for interview in interviews %}
+		<div class="border m-3 p-4">
+			<p>{{ interview['company']['company_name']}}</p>
+			<p>{{ interview['interview_date'] }}</p>
+			<p>{{ interview['interviewer']}}</p>
+			<p>{{ interview['interview_details']}}</p>
+		</div>
+		{% endfor %}
 	</div>
 </div>
 

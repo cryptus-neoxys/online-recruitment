@@ -101,15 +101,20 @@ def signup():
 			username = request.form['username']
 			password = request.form['password']
 			name = request.form['name']
-			user_type = request.form['user_type']
-			new_user = User(username=username, password=password, name=name, user_type=user_type)
-			
-			db.session.add(new_user)
-			db.session.commit()
 
-			session['user'] = username
-			session['user_type'] = user_type
-			return redirect(url_for('configure', user_type=user_type))
+			if User.query.filter_by(username=username).first():
+				flash('User already exists', 'error')
+				return render_template('signup.html', app_data=app_data)
+			else:
+				user_type = request.form['user_type']
+				new_user = User(username=username, password=password, name=name, user_type=user_type)
+				
+				db.session.add(new_user)
+				db.session.commit()
+
+				session['user'] = username
+				session['user_type'] = user_type
+				return redirect(url_for('configure', user_type=user_type))
 	else:
 		return render_template('signup.html', app_data=app_data)
 
@@ -487,6 +492,8 @@ def service():
 @app.route('/contact')
 def contact():
     return render_template('contact.html', app_data=app_data)
+
+
 
 
 if __name__ == '__main__':

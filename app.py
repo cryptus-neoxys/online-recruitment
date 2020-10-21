@@ -214,7 +214,16 @@ def account():
 				interview = interview.__dict__
 				interview['company'] = company
 				all_interviews.append(interview)
-			return render_template('applicant.html', app_data=app_data, applicant=applicant, applications=all_application, interviews=all_interviews)
+
+			offers = Offer_Letter.query.filter_by(applicant_id = applicant['applicant_id']).all()
+			all_offers = []
+			for offer in offers:
+				company = Company.query.filter_by(company_id = application['company_id']).first().__dict__
+				offer = offer.__dict__
+				offer['company'] = company
+				all_offers.append(offer)
+
+			return render_template('applicant.html', app_data=app_data, applicant=applicant, applications=all_application, interviews=all_interviews, offers=all_offers)
 	else:
 		return redirect(url_for('login'))
 
@@ -390,6 +399,32 @@ def send_interview():
 		db.session.commit()
 
 		return 'success'
+
+@app.route('/send_offer', methods=['GET', 'POST'])
+def send_offer():
+	if request.method == 'POST':
+		data = request.get_data()	
+		data = data.decode("utf-8")
+		data = json.loads(data)
+		print(data)
+		res = db.session.query(Application).filter(Application.post_id == data['offer']['post_id'], Application.applicant_id == data['offer']['applicant_id']).update({Application.application_status : 'hire'},  synchronize_session = False)
+
+		company_id = db.session.query(Company).filter_by(username= session['user']).first().__dict__['company_id']
+
+		ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
+		now = datetime.now()
+		date = now.strftime("%Y%m%d%H%M%S")
+		offer_id = 'O' + ''.join(ip.split('.')) + date
+
+
+		offer_date = datetime.strptime(data['offer']['offer_date'], '%Y-%m-%d')
+
+		new_offer = Offer_Letter(offer_id=offer_id, details = data['offer']['offer_details'], offer_date=offer_date, company_id=company_id, package=data['offer']['package'], applicant_id=data['offer']['applicant_id'])
+		db.session.add(new_offer)
+		db.session.commit()
+
+		return 'success'
+
 
 @app.route('/findjob', methods=['GET', 'POST'])
 def findjob():

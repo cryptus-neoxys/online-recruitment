@@ -38,6 +38,8 @@ get_flashed_messages(with_categories = true) %}
 		</div>
 	</div>
 	<div>
+
+		<h1>All Applications</h1>
 		{% for application in applications %}
 		<div class="border m-3 p-4">
 			<p>{{ application['applicant_id']}}</p>
@@ -51,9 +53,22 @@ get_flashed_messages(with_categories = true) %}
 		{% for interview in interviews %}
 		<div class="border m-3 p-4">
 			<p>{{ interview['company']['company_name']}}</p>
+			<p>{{ interview['company']['company_type']}}</p>
+			<p>{{ interview['company']['company_email']}}</p>
 			<p>{{ interview['interview_date'] }}</p>
 			<p>{{ interview['interviewer']}}</p>
 			<p>{{ interview['interview_details']}}</p>
+		</div>
+		{% endfor %}
+
+		<h1>Offers</h1>
+		{% for offer in offers %}
+		<div class="border m-3 p-4">
+			<p>{{ offer['company']['company_name']}}</p>
+			<p>{{ offer['company']['company_type']}}</p>
+			<p>{{ offer['offer_date'] }}</p>
+			<p>{{ offer['package']}}</p>
+			<p>{{ offer['offer_details']}}</p>
 		</div>
 		{% endfor %}
 	</div>

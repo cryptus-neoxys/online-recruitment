@@ -51,6 +51,46 @@ get_flashed_messages(with_categories = true) %}
 	</div>
   </div>
 
+  <!-- Button to Open the Modal -->
+<button type="button" class="btn btn-primary d-none" data-toggle="modal" data-target="#offerModal" id="offerbtn">
+	Open modal
+  </button>
+  
+  <!-- The Modal -->
+  <div class="modal fade" id="offerModal">
+	<div class="modal-dialog">
+	  <div class="modal-content">
+  
+		<!-- Modal Header -->
+		<div class="modal-header">
+		  <h4 class="modal-title">Schedule offer</h4>
+		  <button type="button" class="close" data-dismiss="modal">&times;</button>
+		</div>
+  
+		<!-- Modal body -->
+		<div class="modal-body">
+		  <input type="text" id="offer_applicant_id" class="d-none">
+		  <input type="text" id="offer_post_id" class="d-none">
+
+		<label>Package (Amount)</label>
+		  <input type="number" class="form-control" placeholder="package" id="package" />
+		<label>offer Date</label>
+		<input type="date" class="form-control" placeholder="offer Date" id="offerdate" />
+		<label>offer Details</label>
+		  <textarea placeholder="offer Discription" class="form-control" id="offerdetails"></textarea>
+
+		  <button class="btn btn-success m-4" onclick="sendOffer()">Submit</button>
+		</div>
+  
+		<!-- Modal footer -->
+		<div class="modal-footer">
+		  <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+		</div>
+  
+	  </div>
+	</div>
+  </div>
+
     <div>
 
 		<div class="container border p-2 m-2">
@@ -85,10 +125,6 @@ get_flashed_messages(with_categories = true) %}
 					<p>{{ hire['applicant']['applicant_location']}}</p>
 					<p>{{ hire['post_id']}}</p>
 					<p>{{ hire['application_status']}}</p>
-					<div class="text-right">
-						<button onclick="applicantAction(`{{ application }}`,'hire')" class="btn btn-success py-0">Hire</button>
-						<button onclick="applicantAction(`{{ application }}`,'reject')"class="btn btn-danger py-0">Reject</button>
-					</div>
 				</div>
 				
 			{% endfor %}
@@ -133,7 +169,7 @@ get_flashed_messages(with_categories = true) %}
 			}),
 			'success' : function(response){
 				console.log(response)
-				// location.reload();
+				location.reload();
 				
 			},
 			'error' : function(error){
@@ -143,7 +179,40 @@ get_flashed_messages(with_categories = true) %}
 		});
 		
 
-	}	
+	}
+	
+	function sendOffer(){
+
+		offer = {
+			'applicant_id' : document.getElementById('offer_applicant_id').value,
+			'post_id' : document.getElementById('offer_post_id').value,
+			'package' : parseInt(document.getElementById('package').value),
+			'offer_date' : document.getElementById('offerdate').value,
+			'offer_details' : document.getElementById('offerdetails').value,
+		}
+
+		console.log(offer)
+
+			
+		$.ajax({
+			'type' : 'POST',
+			'url' : `{{ url_for('send_offer') }}`,
+			'data' : JSON.stringify({
+				'offer' : offer,
+			}),
+			'success' : function(response){
+				console.log(response)
+				location.reload();
+				
+			},
+			'error' : function(error){
+				console.log(error)
+			}
+
+		});
+
+
+		}
 
 	function applicantAction(applicant, action){
 		applicant = JSON.parse(applicant.replace(/'/g, '"'));
@@ -154,6 +223,9 @@ get_flashed_messages(with_categories = true) %}
 
 		if(action == 'hire'){
 			//modal for offer letter
+			document.getElementById('offerbtn').click()
+			document.getElementById('offer_applicant_id').value = applicant['applicant_id']
+			document.getElementById('offer_post_id').value = applicant['post_id']
 			
 		}
 
